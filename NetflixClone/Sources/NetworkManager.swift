@@ -45,7 +45,6 @@ class NetworkManager {
       guard let movieData = try? JSONDecoder().decode(UpcomingDTO.self, from: data) else {
         return .failure(.internalError)
       }
-//      print(movieData.results)
       return .success(movieData.results)
     } catch {
       return .failure(.serverErrpr)

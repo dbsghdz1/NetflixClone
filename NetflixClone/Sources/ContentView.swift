@@ -65,6 +65,7 @@ struct ContentView: View {
               }
             }
           }
+          
           Text("개봉 예정영화")
           ScrollView(.horizontal) {
             LazyHGrid(rows: columns) {
@@ -77,6 +78,7 @@ struct ContentView: View {
               }
             }
           }
+          
           Text("개봉 예정영화")
           ScrollView(.horizontal) {
             LazyHGrid(rows: columns) {
@@ -89,9 +91,6 @@ struct ContentView: View {
               }
             }
           }
-//          List(viewStore.results) { result in
-//            Text(result.title)
-//          }
         }
       }
       .padding()
@@ -103,5 +102,12 @@ struct ContentView: View {
 }
 
 #Preview {
-  ContentView(store: Store(initialState: Feature.State(), reducer: { Feature() }))
+  ContentView(
+    store: Store(
+      initialState: Feature.State(),
+      reducer: {
+        Feature()
+      }
+    )
+  )
 }
