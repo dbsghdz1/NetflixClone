@@ -4,14 +4,14 @@ import Combine
 
 struct Feature: Reducer {
   struct State: Equatable {
-    var results = [String]()
+    var results:[UpcomingResult] = []
     var errorMessage: String?
-    var response: Result<UpcomingDTO, APIError>?
+    var response: Result<[UpcomingResult], APIError>?
   }
   
   enum Action: Equatable {
     case fetchData
-    case fetchResponse(Result<UpcomingDTO, APIError>)
+    case fetchResponse(Result<[UpcomingResult], APIError>)
   }
   
   func reduce(into state: inout State, action: Action) -> Effect<Action> {
@@ -24,12 +24,12 @@ struct Feature: Reducer {
           let response = try await NetworkManager.shared.getMovieInfo()
           await send(.fetchResponse(response))
         } catch {
-          // NSURLError와 다른 오류를 처리합니다.
-          let apiError = error as? APIError ?? .serverErrpr // 기본 오류 설정
+          let apiError = error as? APIError ?? .serverErrpr
           await send(.fetchResponse(.failure(apiError)))
         }
       }
     case .fetchResponse(.success(let movieData)):
+      state.results = movieData
       state.response = .success(movieData)
       return .none
       
@@ -43,26 +43,60 @@ struct Feature: Reducer {
 
 struct ContentView: View {
   let store: StoreOf<Feature>
+  let columns = Array(repeating: GridItem(.fixed(100)), count: 1)
   
   var body: some View {
     WithViewStore(self.store, observe: { $0 }) { viewStore in
+      Text("NetFlix")
       VStack {
         if let errorMessage = viewStore.errorMessage {
           Text("Error: \(errorMessage)")
             .foregroundColor(.red)
         } else {
-          List(viewStore.results, id: \.self) { result in
-            Text(result) // 영화 제목을 표시
+          Text("개봉 예정영화")
+          ScrollView(.horizontal) {
+            LazyHGrid(rows: columns) {
+              ForEach(viewStore.results) { result in
+                AsyncImage(url: URL(string: "https://image.tmdb.org/t/p/w500/\(result.posterPath).jpg")) { image in
+                  image.resizable()
+                } placeholder: {
+                  ProgressView()
+                }
+              }
+            }
           }
-        }
-        
-        Button("Fetch Upcoming Movies") {
-          viewStore.send(.fetchData) // 버튼 클릭 시 fetchData 액션 발송
+          Text("개봉 예정영화")
+          ScrollView(.horizontal) {
+            LazyHGrid(rows: columns) {
+              ForEach(viewStore.results) { result in
+                AsyncImage(url: URL(string: "https://image.tmdb.org/t/p/w500/\(result.posterPath).jpg")) { image in
+                  image.aspectRatio(contentMode: .fill)
+                } placeholder: {
+                  ProgressView()
+                }
+              }
+            }
+          }
+          Text("개봉 예정영화")
+          ScrollView(.horizontal) {
+            LazyHGrid(rows: columns) {
+              ForEach(viewStore.results) { result in
+                AsyncImage(url: URL(string: "https://image.tmdb.org/t/p/w500/\(result.posterPath).jpg")) { image in
+                  image.resizable()
+                } placeholder: {
+                  ProgressView()
+                }
+              }
+            }
+          }
+//          List(viewStore.results) { result in
+//            Text(result.title)
+//          }
         }
       }
       .padding()
       .onAppear {
-        viewStore.send(.fetchData) // 뷰가 나타날 때 데이터 가져오기
+        viewStore.send(.fetchData)
       }
     }
   }

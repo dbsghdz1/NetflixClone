@@ -12,7 +12,7 @@ class NetworkManager {
   private init() {}
   
   let baseUrl = "https://api.themoviedb.org/3/movie/"
-  func getMovieInfo() async throws -> Result<UpcomingDTO, APIError> {
+  func getMovieInfo() async throws -> Result<[UpcomingResult], APIError> {
     guard let Url = URL(string: baseUrl + "upcoming") else {
       return .failure(.invalidUrl)
     }
@@ -45,7 +45,8 @@ class NetworkManager {
       guard let movieData = try? JSONDecoder().decode(UpcomingDTO.self, from: data) else {
         return .failure(.internalError)
       }
-      return .success(movieData)
+//      print(movieData.results)
+      return .success(movieData.results)
     } catch {
       return .failure(.serverErrpr)
     }

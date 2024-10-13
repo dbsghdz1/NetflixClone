@@ -8,19 +8,10 @@
 import Foundation
 
 struct UpcomingDTO: Codable, Equatable {
-  
-  let page: Int
   let results: [UpcomingResult]
-  let totalPages, totalResults: Int
-  
-  enum CodingKeys: String, CodingKey {
-    case page, results
-    case totalPages = "total_pages"
-    case totalResults = "total_results"
-  }
 }
 
-struct UpcomingResult: Codable, Equatable {
+struct UpcomingResult: Codable, Equatable, Identifiable {
   let adult: Bool
   let backdropPath: String
   let genreIDS: [Int]
