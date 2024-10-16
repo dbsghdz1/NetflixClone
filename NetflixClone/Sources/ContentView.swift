@@ -1,12 +1,15 @@
 import SwiftUI
 import ComposableArchitecture
 import Combine
+import Moya
 
 struct Feature: Reducer {
+  private let provider = MoyaProvider<MovieAPI>()
   struct State: Equatable {
     var results:[UpcomingResult] = []
+    var posterArray = [String]()
     var errorMessage: String?
-    var response: Result<[UpcomingResult], APIError>?
+    //var response: Result<[UpcomingResult], APIError>?
   }
   
   enum Action: Equatable {
@@ -17,24 +20,54 @@ struct Feature: Reducer {
   func reduce(into state: inout State, action: Action) -> Effect<Action> {
     switch action {
     case .fetchData:
-      state.response = nil
+      state.results = []
+      //state.response = nil
       state.errorMessage = nil
       return .run { send in
-        do {
-          let response = try await NetworkManager.shared.getMovieInfo()
-          await send(.fetchResponse(response))
-        } catch {
-          let apiError = error as? APIError ?? .serverErrpr
-          await send(.fetchResponse(.failure(apiError)))
+        provider.request(.popular) { result in
+          switch result {
+          case let .success(response):
+            print(response.statusCode)
+            let decoder = JSONDecoder()
+            if let json = try? decoder.decode(PopularDTO.self, from: response.data) {
+              let posters = json.results
+              for poster in posters {
+                
+              }
+            }
+            return
+          case .failure(let error):
+            print(error)
+            return
+          }
         }
+//        do {
+//          provider.request(.popular) { responsee in
+//            switch responsee {
+//            case .success(let result):
+//              guard let data = try? result.map(DataResponse<PopularResult>.self) else {
+//                print(data)
+//              }
+//            case .failure(let error):
+//              print(err)
+//            }
+//            
+//          }
+////          let response = try await NetworkManager.shared.getMovieInfo()
+////          await send(.fetchResponse(response))
+//        } catch {
+//          let apiError = error as? APIError ?? .serverErrpr
+//          await send(.fetchResponse(.failure(apiError)))
+//        }
       }
     case .fetchResponse(.success(let movieData)):
       state.results = movieData
-      state.response = .success(movieData)
+      state.errorMessage = nil
+      //state.response = .success(movieData)
       return .none
       
     case .fetchResponse(.failure(let error)):
-      state.response = .failure(error)
+      //state.response = .failure(error)
       state.errorMessage = error.rawValue
       return .none
     }
@@ -84,7 +117,7 @@ struct ContentView: View {
             LazyHGrid(rows: columns) {
               ForEach(viewStore.results) { result in
                 AsyncImage(url: URL(string: "https://image.tmdb.org/t/p/w500/\(result.posterPath).jpg")) { image in
-                  image.resizable()
+                  image.scaledToFit()
                 } placeholder: {
                   ProgressView()
                 }

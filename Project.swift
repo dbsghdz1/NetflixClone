@@ -19,7 +19,8 @@ let project = Project(
             sources: ["NetflixClone/Sources/**"],
             resources: ["NetflixClone/Resources/**"],
             dependencies: [
-              .external(name: "ComposableArchitecture")
+              .external(name: "ComposableArchitecture"),
+              .external(name: "Moya")
             ]
         ),
         .target(
